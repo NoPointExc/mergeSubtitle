@@ -16,8 +16,22 @@ class Block:
         if block1.start_time > block2.start_time:
             first = block2
             second = block1
-        rst = Block.__init__(first.id, first.end_time, second.end_time, first.text + second.text)
+        rst = Block(first.id, first.end_time, second.end_time, first.text + ' ' + second.text)
         return rst
+    
+    def __str__(self):
+            return '{}\n{} --> {}\n{}\n'.format(str(self.id), time_str(self.start_time), time_str(self.end_time), self.text)
+
+def time_str(time):
+    hr = int(time / (60 * 60))
+    time = time - hr
+    min = int(time / 60)
+    time = time - min
+    sec = int(time)
+    ms = int((time - sec) * 1000)
+    return '{:02}:{:02}:{:02},{:03}'.format(hr,min, sec, ms)    
+
+#print time_str(25.16)
 
 def parse_time(str_time):
     vals = string.split(str_time, ':')
@@ -57,10 +71,19 @@ def process(file_name, start_time, end_time):
                 s_time, e_time = parse_time_range(str_time)
                 blocks.append(Block(int(str_id), s_time, e_time, text))
     # merge & sort
-    with open(file_name + 'm.srt', mode = 'rw'):
-        for b in blocks:
-            #write back
-            pass
+    result = []
+    for block in blocks:
+        if block.end_time < parse_time(start_time) or block.start_time > parse_time(end_time):
+            result.append(block)
+        else:
+            if(len(result) == 0):
+                result.append(block)
+            result[len(result) - 1] = result[len(result) - 1] + block 
+            
+    with open(file_name + 'm.srt', mode = 'w') as f:
+        for block in result:
+            f.write(str(block))
+            f.write('\n')
 
 USAGE = 'usage \n [source_file] [start_time] [end_time]'
 if len(sys.argv) < 4:
@@ -70,10 +93,5 @@ else:
     start_time = str(sys.argv[2])
     end_time = str(sys.argv[3])
     process(file_name, start_time, end_time)
-
-
-
-
-
 
 
